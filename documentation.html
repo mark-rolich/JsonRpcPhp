@@ -1,0 +1,207 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+        "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<title>JsonRpcPhp documentation</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+html, body {
+    font: 13px Arial;
+    margin: 0;
+    padding: 10px
+}
+
+h1, h2 {
+    margin: 0
+}
+
+h1 {
+    font-size: 18px
+}
+
+h2 {
+    font-size: 16px;
+    margin-top: 25px
+}
+
+pre {
+    border: solid 1px #C1E7FF;
+    background-color: #E8F6FF;
+    padding: 5px;
+    font-size: 12px;
+    margin: 0 0 10px 0
+}
+
+.main-wrapper {
+    width: 600px;
+    height: 100%
+}
+
+.section {
+    border: solid 1px #FFBCBC;
+    background-color: #FFE8E8;
+    padding: 3px
+}
+
+.info {
+    width: 350px;
+    height: 200px;
+    overflow: auto;
+    border: solid 1px #ccc;
+    padding: 5px;
+    margin-top: 10px
+}
+</style>
+</head>
+<body>
+<div class="main-wrapper">
+<h1>JsonRpcPhp</h1>
+
+<p>This PHP package implements JSON-RPC v2.0 protocol (<a href="http://www.jsonrpc.org/specification">specification</a>).</p>
+<p>Supports:</p>
+<ul>
+    <li>Single and batch calls</li>
+    <li>JSON-RPC calls in context of server</li>
+    <li>Pluggable classes (services)</li>
+</ul>
+
+<h2>Basics</h2>
+
+<p>Package consists of 2 main classes: JsonRpcServer and JsonRpcClient.
+JsonRpcException.php file contains classes for each type of JSON-RPC error.
+</p>
+
+<h2>Server</h2>
+
+<p class="section">JSON-RPC server can be initialized in the following way:</p>
+
+<pre>
+&lt;?php
+include '../JsonRpcException.php';
+include '../JsonRpcServer.php';
+include 'Service.php';
+
+$service = new Service();
+$server = new JsonRpcServer();
+
+$server->addService($service);
+
+$request = file_get_contents("php://input");
+$result = $server->process($request);
+
+if ($result !== null) {
+    echo $result;
+}
+?&gt;
+</pre>
+
+<p>Service.php is a class containing service methods which will be exposed by the server.</p>
+<p>Multiple services can be plugged to server (with non-intersecting method names).</p>
+
+<p class="section">Example of service class:</p>
+
+<pre>
+&lt;?php
+class MathService
+{
+    public function divide($dividend, $divisor)
+    {
+        if ($divisor === 0) {
+            throw new JsonRpcApplicationException('Division by zero', 100);
+        }
+
+        return $dividend/$divisor;
+    }
+}
+?&gt;
+</pre>
+
+<p>Error should be thrown from service method as an instance of <strong>JsonRpcApplicationException</strong> class</p>
+
+<h2>Client</h2>
+
+<p class="section">JSON-RPC server can be initialized in the following way:</p>
+
+<pre>
+&lt;?php
+include '../JsonRpcClient.php';
+$client = new JsonRpcClient('http://path-to-json-rpc-server');
+?&gt;
+</pre>
+
+<p>If there will be HTTP status code other than 200 when connecting to specified JSON-RPC server url,
+an exception will be thrown by JsonRpcClient.</p>
+
+<h2>Making JSON-RPC call</h2>
+
+<p>Using server context (invoking server method directly):</p>
+
+<pre>
+try {
+    $params = new StdClass();
+    $params->minuend = 42;
+    $params->subtrahend = 23;
+
+    $response = $client->subtract($params, 1);
+    var_dump($response);
+} catch (Exception $e) {
+    ...
+}
+</pre>
+
+<pre>
+try {
+    $params = array('minuend' => 42, 'subtrahend' => 23);
+    $response = $client->subtract($params, 2);
+    var_dump($response);
+} catch (Exception $e) {
+    ...
+}
+</pre>
+
+<p>Using <strong>call</strong> method:</p>
+
+<pre>
+$response = $client->call('subtract', array(42, 23), 3);
+var_dump($response);
+
+$response = $client->call('subtract', array('subtrahend' => 23, 'minuend' => 42), 4);
+var_dump($response);
+</pre>
+
+<p>Sending plain JSON encoded request using <strong>rawcall</strong> method:</p>
+
+<pre>
+$request = '{
+    "jsonrpc":"2.0",
+    "method":"subtract",
+    "params":{"subtrahend":23,"minuend":42},
+    "id":5
+}';
+
+$response = $client->rawcall($request);
+var_dump($response);
+</pre>
+
+<p>Performing batch call:</p>
+
+<pre>
+$requests = array();
+
+$requests[] = $client->prepare('subtract', 2, 1);
+$requests[] = $client->prepare('subtract', array(23, 52), 2);
+$requests[] = $client->prepare('subtract', array(45, 52), 3);
+$requests[] = $client->prepare('subtract', array(7, 52), 4);
+$requests[] = $client->prepare('foobar', array(7, 52), 5);
+
+$response = $client->callBatch($requests);
+var_dump($response);
+</pre>
+
+<p>More examples are provided with the package.</p>
+
+<p>Examples contain tests, one for example requests and responses from specification, and the other for additional testing.</p>
+<p>Both should pass succefully.</p>
+
+</body>
+</html>

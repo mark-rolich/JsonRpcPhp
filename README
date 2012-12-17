@@ -1,0 +1,9 @@
+This PHP package implements JSON-RPC v2.0 protocol (http://www.jsonrpc.org/specification).
+
+Supports:
+
+- Single and batch calls
+- JSON-RPC calls in context of server
+- Pluggable classes (services)
+
+Copyright (C) 2012  Mark Rolich
