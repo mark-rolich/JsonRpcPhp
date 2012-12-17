@@ -41,10 +41,17 @@ class JsonRpcServer
             $rMethod = new ReflectionMethod($service, $method);
             $rParams = $rMethod->getParameters();
 
-            $this->queue[$method] = array();
+            $this->queue[$method] = array(
+                'required' => array(),
+                'optional' => array()
+            );
 
             foreach ($rParams as $k => $param) {
-                array_push($this->queue[$method], $param->getName());
+                if ($param->isOptional() === false) {
+                    array_push($this->queue[$method]['required'], $param->getName());
+                } else {
+                    $this->queue[$method]['optional'][$param->getName()] = $param->getDefaultValue();
+                }
             }
         }
     }
@@ -146,9 +153,9 @@ class JsonRpcServer
     */
     private function areParamsExpected($request)
     {
-        $mParams = $this->queue[$request->method];
+        $rParams = $this->queue[$request->method]['required'];
 
-        if (count($mParams) > 0 && !isset($request->params)) {
+        if (count($rParams) > 0 && !isset($request->params)) {
             throw new JsonRpcInvalidParamsException();
         }
     }
@@ -162,7 +169,7 @@ class JsonRpcServer
     */
     private function validatePosParams($method, $params)
     {
-        if (count($params) !== count($this->queue[$method])) {
+        if (count($params) < count($this->queue[$method]['required'])) {
             throw new JsonRpcInvalidParamsException();
         }
     }
@@ -177,11 +184,13 @@ class JsonRpcServer
     private function validateNamedParams($method, $params)
     {
         $params = (array)$params;
-        $mParams = array_flip($this->queue[$method]);
+        $rParams = array_flip($this->queue[$method]['required']);
+        $oParams = $this->queue[$method]['optional'];
 
-        $diff = array_diff_key($params, $mParams);
+        $diff = array_diff_key($params, $rParams);
+        $oDiff = array_diff_key($diff, $oParams);
 
-        if (!empty($diff)) {
+        if (!empty($diff) && !empty($oDiff)) {
             throw new JsonRpcInvalidParamsException();
         }
     }
@@ -197,9 +206,19 @@ class JsonRpcServer
     private function sortNamedParams($method, $params)
     {
         $params = (array)$params;
-        $mParams = array_flip($this->queue[$method]);
 
-        array_multisort($params, SORT_DESC, $mParams);
+        $rParams = array_flip($this->queue[$method]['required']);
+        $oParams = $this->queue[$method]['optional'];
+
+        $mParams = array_merge($rParams, $oParams);
+
+        if (count($params) < count($mParams)) {
+            $params = array_merge($oParams, $params);
+        }
+
+        $sortKeys = array_flip(array_keys($mParams));
+
+        $params = array_merge($sortKeys, $params);
 
         return $params;
     }
