@@ -9,53 +9,33 @@
 */
 class JsonRpcInvalidJsonException extends Exception
 {
-    public function getError()
+    public function __construct($message = '', $code = 0)
     {
-        $error = new StdClass();
-
-        $error->code = -32700;
-        $error->message = 'Parse error.';
-
-        return $error;
+        parent::__construct('Parse error.', -32700);
     }
 }
 
 class JsonRpcInvalidRequestException extends Exception
 {
-    public function getError()
+    public function __construct($message = '', $code = 0)
     {
-        $error = new StdClass();
-
-        $error->code = -32600;
-        $error->message = 'Invalid Request.';
-
-        return $error;
+        parent::__construct('Invalid Request.', -32600);
     }
 }
 
 class JsonRpcInvalidMethodException extends Exception
 {
-    public function getError()
+    public function __construct($message = '', $code = 0)
     {
-        $error = new StdClass();
-
-        $error->code = -32601;
-        $error->message = 'Method not found.';
-
-        return $error;
+        parent::__construct('Method not found.', -32601);
     }
 }
 
 class JsonRpcInvalidParamsException extends Exception
 {
-    public function getError()
+    public function __construct($message = '', $code = 0)
     {
-        $error = new StdClass();
-
-        $error->code = -32602;
-        $error->message = 'Invalid params.';
-
-        return $error;
+        parent::__construct('Invalid params.', -32602);
     }
 }
 
@@ -64,17 +44,6 @@ class JsonRpcApplicationException extends Exception
     public function __construct($message, $code = 0)
     {
         parent::__construct($message, $code);
-    }
-
-    public function getError()
-    {
-        $error = new StdClass();
-
-        $error->code = $this->getCode();
-        $error->message = 'Application error.';
-        $error->data = $this->getMessage();
-
-        return $error;
     }
 }
 ?>

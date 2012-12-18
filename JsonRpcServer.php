@@ -275,7 +275,11 @@ class JsonRpcServer
                 $response = $this->call($request);
             }
          } catch (Exception $e) {
-            $error = $e->getError();
+            $error = new StdClass();
+
+            $error->code = $e->getCode();
+            $error->message = $e->getMessage();
+
             $response = $this->buildResponse(0, $error, null);
         }
 
@@ -326,7 +330,16 @@ class JsonRpcServer
                 $response = $this->buildResponse(1, $result, $request->id);
             }
         } catch (Exception $e) {
-            $error = $e->getError();
+            $error = new StdClass();
+
+            $error->code = $e->getCode();
+
+            if ($error->code > -32000) {
+                $error->message = 'Application error.';
+                $error->data = $e->getMessage();
+            } else {
+                $error->message = $e->getMessage();
+            }
 
             $notRequestId = (!is_object($request) || !isset($request->id));
             $isRespondable = ($e instanceof JsonRpcInvalidJsonException
