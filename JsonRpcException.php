@@ -1,12 +1,12 @@
 <?php
 /**
-* PHP implementation of JSON-RPC 2.0
-* JSON-RPC Errors
-* Specification: http://www.jsonrpc.org/specification
-*
-* @package JsonRpcPhp
-* @author Mark Rolich <mark.rolich@gmail.com>
-*/
+ * PHP implementation of JSON-RPC 2.0
+ * JSON-RPC Errors
+ * Specification: http://www.jsonrpc.org/specification
+ *
+ * @package JsonRpcPhp
+ * @author Mark Rolich <mark.rolich@gmail.com>
+ */
 class JsonRpcInvalidJsonException extends Exception
 {
     public function __construct($message = '', $code = 0)
@@ -46,4 +46,5 @@ class JsonRpcApplicationException extends Exception
         parent::__construct($message, $code);
     }
 }
+
 ?>
