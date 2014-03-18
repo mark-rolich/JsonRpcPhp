@@ -196,9 +196,9 @@ class JsonRpcServer
         $rParams = array_flip($this->queue[$method]['required']);
         $oParams = $this->queue[$method]['optional'];
 
-        $diff = array_diff_key($params, $rParams);
+        $diff = array_diff_key($rParams, $params);
         $oDiff = array_diff_key($diff, $oParams);
-
+//var_dump(array_diff_key($rParams, $params));
         if (!empty($diff) && !empty($oDiff)) {
             throw new JsonRpcInvalidParamsException();
         }

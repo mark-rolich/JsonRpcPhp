@@ -198,6 +198,27 @@ try {
 ?>
 </pre>
 
+<p>not passing mandatory parameters:</p>
+
+<pre class="example">
+<?php
+    $request = '{"jsonrpc":"2.0","method":"subtract","params":{"subtrahend":43},"id":1}';
+    $expected = '{"jsonrpc": "2.0", "error": {"code": -32602, "message": "Invalid params."}, "id": 1}';
+
+    echo test($request, $expected);
+    
+    $request = '{"jsonrpc":"2.0","method":"subtract","params":{"minuend":43},"id":1}';
+    $expected = '{"jsonrpc": "2.0", "error": {"code": -32602, "message": "Invalid params."}, "id": 1}';
+
+    echo test($request, $expected);    
+    
+    $request = '{"jsonrpc":"2.0","method":"subtract","params":[43],"id":1}';
+    $expected = '{"jsonrpc": "2.0", "error": {"code": -32602, "message": "Invalid params."}, "id": 1}';
+
+    echo test($request, $expected);
+?>
+</pre>
+
 <?php } catch (Exception $e) { ?>
 <p><?php echo $e->getMessage(); ?></p>
 <?php } ?>
